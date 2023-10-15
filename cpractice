@@ -3,90 +3,51 @@
 #include <string.h>
 
 
-    (void){
-    char title[100];
-    int choice;
-    printf(" 1.Show movies released in the specified yea .\n");
-    printf(" 2.Show highest rated movie for each year.\n");
-    printf("3.Show the title and year of release of all movies in a specific language .\n");
-    printf("4.Exit from the program .\n");
-    printf(" Enter a choice from 1 to 4: .\n");
-    scanf("%d", &choice);
-    if (choice  == 1) {
-        int year;
-        printf("Enter the year for which you want to see the movie .\n");
-        scanf("%d", &year);
-    } else if (choice == 2 ) {
-        int year;
-        printf("Enter the year for which you want to see the highest rated movie .\n"); 
-        scanf("%d", &year);
-    } else if  (choice == 3) {
-         char language[80];
-         printf("Enter the year for which you want to see the movie .\n");
-         scanf("%s", language);
-    } else if (choice == 4){
-            printf("Your out of the program");
-    }
-    const char *movie_file = "movies.csv";
-    FILE* file  = fopen("movies.csv","r");
-     if (file == NULL){
-        printf("This file doesnt exist");
-        return 1;
-     }
-    int moviecount;
-    char buffer [1024];
-    while (fgets (buffer, sizeof(buffer), file) != NULL){
-        moviecount++;
-    }
-    fclose(file);
-        
-     
-    
-printf("Processed file %s and parsed data for %d movies \n",movie_file, moviecount);
-return 0;
-}
-
-
+// creation of a struct movie with tiltle year language and rate 
 struct movie 
  {
     char* title;
-    char*  year;
+    int  year;
     char* language;
-    char*  rate;
+    float  rate;
     struct movie *next;    
 
  };
- // dynamically allocating memmory on the heap for an individual movie sturct takes a pointer to the current line  
+ // dynamically allocating memmory on the heap for an individual movie sturct takes a pointer to the current movie 
  //and uses a tokenizer to save the place where they stopped cutting the " " delimeters
  struct movie *createmovie( char *currline){
     struct movie *currmovie = malloc(sizeof (struct movie));
+    // we want this to save where the tokenizer has actually stopped working from.
     char *saveptr;
-    char *token = strtok_r(currline, " ", &saveptr);
+    //ur trying to save the title into the struct ur in and using save ptr to keen the position where the tokenizer stopped working from with in the current line.U copy the token of title so u have it present in the struct
+    char *token = strtok_r(currline, ",", &saveptr);
     currmovie->title = calloc(strlen(token) + 1, sizeof(char));
-    strcpy(currmovie->title, token);
+   strcpy(currmovie->title, token);
 
 
-    token = strtok_r(currline, " ", &saveptr);
-    currmovie->year = calloc(strlen(token) + 1, sizeof(char));
-    strcpy(currmovie->year, token);
+    token = strtok_r(NULL, ",", &saveptr);
+    // converting year into an integer.
+    currmovie->year = atoi(token);
 
-    token = strtok_r(currline, " ", &saveptr);
+    token = strtok_r(NULL, ",", &saveptr);
+    // ur trying to copy token of langauage in the struct and using save ptr to know where in the struct it has stopped.
     currmovie->language = calloc(strlen(token) + 1, sizeof(char));
     strcpy(currmovie->language, token);
 
-    token = strtok_r(currline, "/n", &saveptr);
-    currmovie->rate = calloc(strlen(token) + 1, sizeof(char));
-    strcpy(currmovie->rate, token);
+    token = strtok_r(NULL, "\n", &saveptr);
+    //currmovie->rate = calloc(strlen(token) + 1, sizeof(char));
+    currmovie->rate = atof(token);
      currmovie->next = NULL;
      return currmovie;
  }
- 
-struct  movie *processFile(char * filepath){
+
+struct  movie *processFile(char *filepath){
     FILE *movieFile = fopen(filepath, "r");
+    
     char *currline = NULL;
     size_t len = 0;
 
-    size_t nread;
+    ssize_t nread;
     char *token;
     //The head of the linked list
     struct movie * head = NULL;
@@ -98,11 +59,13 @@ struct  movie *processFile(char * filepath){
     while ((nread = getline(&currline, &len, movieFile)) != -1)
     {
         struct movie *newNode = createmovie(currline);
+        //trying to see if this is the start of the linked list to see iif it has noo noodes
         if (head == NULL){
             head = newNode;
-            head = newNode;
+            tail = newNode;
 
         }
+        //try and tag the newr nodes to the tail by connecting new nodes to the tail and updating it to be the tail so the new node becomes the tail
         else {
             tail->next = newNode;
             tail = newNode;
@@ -117,8 +80,9 @@ struct  movie *processFile(char * filepath){
 /*
 * Print data for the given student
 */
+
 void printmovie(struct movie* amovie){
-  printf("%s, %s %s, %s\n", amovie->title,
+  printf("%s, %d, %s, %.1f\n", amovie->title,
                amovie->year,
                amovie->language,
                amovie->rate);
@@ -126,6 +90,7 @@ void printmovie(struct movie* amovie){
 /*
 * Print the linked list of students
 */
+
 void printmovielist(struct movie *list)
 {
     while (list != NULL)
@@ -141,22 +106,43 @@ void printmovielist(struct movie *list)
 *   Compile the program as follows:
 *       gcc --std=gnu99 -o students main.c
 */
-int main (int argc, char *argv[]){
 
-    if (argc < 2)
+
+
+void freeMovieList(struct movie *list){
+    while (list != NULL){
+    struct movie *temp = list;
+    list = list->next;
+    free(temp->title);
+    free(temp->language);
+    free(temp);
+    }
+}
+int main (int argc, char *argv[]){
+     if (argc < 2)
     {
         printf("You must provide the name of the file to process\n");
-        printf("Example usage: ./students student_info1.txt\n");
+        printf("Example usage: ./students movies.csv\n");
         return EXIT_FAILURE;
     }
     struct movie *list = processFile(argv[1]);
-    printmovielist(list);
+    //printmovielist(list);
+    //return EXIT_SUCCESS;
+    if (list != NULL)
+    {
+        printmovielist(list);
+        
+        freeMovieList(list);
+    }
+    
+    // Clean up and free memory here if needed
+
     return EXIT_SUCCESS;
+}
 
 
     
     
 
  
-}
-    
+

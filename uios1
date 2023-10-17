@@ -35,3 +35,18 @@ char title[100];
     fclose(file);
         
      printf("Processed file %s and parsed data for %d movies \n",movie_file, moviecount);
+void searchmovielist(struct movie *list,int year){
+struct movie *p = list;
+int count =0;
+    while(p !=NULL){
+        if(p->year == year){
+        printf("%s, %d, %s, %.1f\n", p->title,p->year,p->language,p->rate);
+        count =1;
+        return;
+        }
+        p = p->next;
+    }
+    if (!count){
+        printf("sorry no movie exist dear");
+    }
+}

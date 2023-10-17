@@ -1,0 +1,37 @@
+char title[100];
+    int choice;
+    printf(" 1.Show movies released in the specified yea .\n");
+    printf(" 2.Show highest rated movie for each year.\n");
+    printf("3.Show the title and year of release of all movies in a specific language .\n");
+    printf("4.Exit from the program .\n");
+    printf(" Enter a choice from 1 to 4: .\n");
+    scanf("%d", &choice);
+    if (choice  == 1) {
+        int year;
+        printf("Enter the year for which you want to see the movie .\n");
+        scanf("%d", &year);
+    } else if (choice == 2 ) {
+        int year;
+        printf("Enter the year for which you want to see the highest rated movie .\n"); 
+        scanf("%d", &year);
+    } else if  (choice == 3) {
+         char language[80];
+         printf("Enter the year for which you want to see the movie .\n");
+         scanf("%s", language);
+    } else if (choice == 4){
+            printf("Your out of the program");
+    }
+    const char *movie_file = "movies.csv";
+    FILE* file  = fopen("movies.csv","r");
+     if (file == NULL){
+        printf("This file doesnt exist");
+        return 1;
+     }
+    int moviecount;
+    char buffer [1024];
+    while (fgets (buffer, sizeof(buffer), file) != NULL){
+        moviecount++;
+    }
+    fclose(file);
+        
+     printf("Processed file %s and parsed data for %d movies \n",movie_file, moviecount);
